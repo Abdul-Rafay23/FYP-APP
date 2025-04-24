@@ -1,0 +1,203 @@
+-- Create Users Table
+CREATE TABLE Users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    password VARCHAR(255),
+    role INT,
+    reg_num VARCHAR(255),
+    section VARCHAR(255),
+    semester INT,
+    email VARCHAR(255),
+    phonenum VARCHAR(20),
+    firstname VARCHAR(MAX),
+    lastname VARCHAR(MAX),
+    Level INT,
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create Teams Table
+CREATE TABLE Teams (
+    team_id INT IDENTITY(1,1) PRIMARY KEY,
+    team_name VARCHAR(255),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create TeamMembers Table
+CREATE TABLE TeamMembers (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    team_id INT FOREIGN KEY REFERENCES Teams(team_id),
+    user_id INT FOREIGN KEY REFERENCES Users(id),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create Subjects Table
+CREATE TABLE Subjects (
+    code VARCHAR(255) PRIMARY KEY,
+    title VARCHAR(MAX),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create Topics Table
+CREATE TABLE Topics (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    subject_code VARCHAR(255) FOREIGN KEY REFERENCES Subjects(code),
+    title VARCHAR(255),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create ExpertSubjects Table
+CREATE TABLE ExpertSubjects (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    expert_id INT FOREIGN KEY REFERENCES Users(id),
+    subject_code VARCHAR(255) FOREIGN KEY REFERENCES Subjects(code),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create StudentSubjects Table
+CREATE TABLE StudentSubjects (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    student_id INT FOREIGN KEY REFERENCES Users(id),
+    subject_code VARCHAR(255) FOREIGN KEY REFERENCES Subjects(code),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create ExpertTopics Table
+CREATE TABLE ExpertTopics (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    expert_id INT FOREIGN KEY REFERENCES Users(id),
+    topic_id INT FOREIGN KEY REFERENCES Topics(id),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create Questions Table
+CREATE TABLE Questions (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    subject_code VARCHAR(255) FOREIGN KEY REFERENCES Subjects(code),
+    topic_id INT FOREIGN KEY REFERENCES Topics(id),
+    user_id INT FOREIGN KEY REFERENCES Users(id),
+    difficulty INT,
+    text VARCHAR(MAX),
+    type INT,
+    repeated INT,
+    yearly_repeated BIT,
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create QuestionOptions Table
+CREATE TABLE QuestionOptions (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    question_id INT FOREIGN KEY REFERENCES Questions(id),
+    [option] VARCHAR(255),
+    isCorrect BIT,
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create Tasks Table
+CREATE TABLE Tasks (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    min_level INT,
+    max_level INT,
+    startDate DATE,
+    endDate DATE,
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create TaskQuestions Table
+CREATE TABLE TaskQuestions (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    task_id INT FOREIGN KEY REFERENCES Tasks(id),
+    question_id INT FOREIGN KEY REFERENCES Questions(id),
+    isDeleted BIT DEFAULT 0
+);
+
+-- ✅ Create SubmittedTasks Table (Improved)
+CREATE TABLE SubmittedTasks (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    task_id INT FOREIGN KEY REFERENCES Tasks(id),
+    question_id INT FOREIGN KEY REFERENCES Questions(id),  -- ✅ Added Question Reference
+    user_id INT FOREIGN KEY REFERENCES Users(id),
+    answer VARCHAR(MAX),
+    submission_date DATE,
+    submission_time TIME,
+    score INT NULL,  -- ✅ Score initially NULL, evaluated by teacher later
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create Competitions Table
+CREATE TABLE Competitions (
+    competition_id INT IDENTITY(1,1) PRIMARY KEY,
+    title VARCHAR(255),
+    year INT,
+    min_level INT,
+    max_level INT,
+    password VARCHAR(255),
+    rounds INT,
+    user_id INT FOREIGN KEY REFERENCES Users(id),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create CompetitionRounds Table
+CREATE TABLE CompetitionRounds (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    competition_id INT FOREIGN KEY REFERENCES Competitions(competition_id),
+    round_number INT,
+    round_type INT,
+    date DATE,
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create CompetitionRoundQuestions Table
+CREATE TABLE CompetitionRoundQuestions (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    competition_round_id INT FOREIGN KEY REFERENCES CompetitionRounds(id),
+    question_id INT FOREIGN KEY REFERENCES Questions(id),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create CompetitionTeams Table
+CREATE TABLE CompetitionTeams (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    competition_id INT FOREIGN KEY REFERENCES Competitions(competition_id),
+    team_id INT FOREIGN KEY REFERENCES Teams(team_id),
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create RoundQualificationCriteria Table
+CREATE TABLE RoundQualificationCriteria (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    from_round_id INT FOREIGN KEY REFERENCES CompetitionRounds(id),
+    to_round_id INT FOREIGN KEY REFERENCES CompetitionRounds(id),
+    top_teams INT,
+    isDeleted BIT DEFAULT 0
+);
+
+-- ✅ Create CompetitionAttemptedQuestions Table (Improved)
+CREATE TABLE CompetitionAttemptedQuestions (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    competition_id INT FOREIGN KEY REFERENCES Competitions(competition_id), 
+    competition_round_id INT FOREIGN KEY REFERENCES CompetitionRounds(id),
+    question_id INT FOREIGN KEY REFERENCES Questions(id),  -- ✅ Added Question Reference
+    team_id INT FOREIGN KEY REFERENCES Teams(team_id),
+    answer VARCHAR(MAX),
+    score INT NULL,  -- ✅ Score initially NULL, set after evaluation
+    submission_time TIME,
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create RoundResults Table
+CREATE TABLE RoundResults (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    competition_round_id INT FOREIGN KEY REFERENCES CompetitionRounds(id),
+    team_id INT FOREIGN KEY REFERENCES Teams(team_id),
+    score INT,
+    competition_id INT FOREIGN KEY REFERENCES Competitions(competition_id),
+    isQualified BIT,
+    isDeleted BIT DEFAULT 0
+);
+
+-- Create WinnerBoard Table
+CREATE TABLE WinnerBoard (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    competition_id INT FOREIGN KEY REFERENCES Competitions(competition_id),
+    team_id INT FOREIGN KEY REFERENCES Teams(team_id),
+    score INT
+);
